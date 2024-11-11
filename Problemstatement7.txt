@@ -1,0 +1,137 @@
+To solve Problem Statement 7 (MapReduce), we need to perform operations on a MongoDB collection called Book, which has the following fields:
+
+Title: The title of the book.
+Author_name: The author of the book.
+Borrowed_status: A boolean indicating whether the book is borrowed or not.
+Price: The price of the book (assuming we also have this field for the third requirement).
+Step 1: Create the Collection
+First, let's create the Book collection with the required fields:
+
+json
+Copy code
+{
+    "Title": "MongoDB Basics",
+    "Author_name": "John Doe",
+    "Borrowed_status": true,
+    "Price": 250
+},
+{
+    "Title": "Advanced MongoDB",
+    "Author_name": "Jane Smith",
+    "Borrowed_status": false,
+    "Price": 350
+},
+{
+    "Title": "MongoDB for Developers",
+    "Author_name": "John Doe",
+    "Borrowed_status": true,
+    "Price": 400
+}
+Step 2: Write MapReduce Functions
+For each requirement, we'll write a Map and Reduce function.
+
+Requirement 1: Display Author-wise list of books.
+Map Function:
+
+The map function will emit the author's name as the key and the book's title as the value.
+Reduce Function:
+
+The reduce function will aggregate all titles for a given author.
+MapReduce Code:
+javascript
+Copy code
+var map = function() {
+    emit(this.Author_name, { books: [this.Title] });
+};
+
+var reduce = function(key, values) {
+    var result = { books: [] };
+    values.forEach(function(value) {
+        result.books = result.books.concat(value.books);
+    });
+    return result;
+};
+
+db.books.mapReduce(map, reduce, { out: "author_books" });
+This will create a new collection author_books that lists all books grouped by author.
+
+Requirement 2: Display Author-wise list of books having Borrowed status as "True".
+Map Function:
+
+The map function will emit the author's name as the key only if the Borrowed_status is true.
+Reduce Function:
+
+The reduce function will aggregate all borrowed book titles for each author.
+MapReduce Code:
+javascript
+Copy code
+var map = function() {
+    if (this.Borrowed_status === true) {
+        emit(this.Author_name, { books: [this.Title] });
+    }
+};
+
+var reduce = function(key, values) {
+    var result = { books: [] };
+    values.forEach(function(value) {
+        result.books = result.books.concat(value.books);
+    });
+    return result;
+};
+
+db.books.mapReduce(map, reduce, { out: "borrowed_books_by_author" });
+This will create a new collection borrowed_books_by_author containing a list of books grouped by author where the books are borrowed.
+
+Requirement 3: Display Author-wise list of books having price greater than 300.
+Map Function:
+
+The map function will emit the author's name as the key only if the Price of the book is greater than 300.
+Reduce Function:
+
+The reduce function will aggregate all books with a price greater than 300 for each author.
+MapReduce Code:
+javascript
+Copy code
+var map = function() {
+    if (this.Price > 300) {
+        emit(this.Author_name, { books: [this.Title] });
+    }
+};
+
+var reduce = function(key, values) {
+    var result = { books: [] };
+    values.forEach(function(value) {
+        result.books = result.books.concat(value.books);
+    });
+    return result;
+};
+
+db.books.mapReduce(map, reduce, { out: "expensive_books_by_author" });
+This will create a new collection expensive_books_by_author containing a list of books grouped by author where the price is greater than 300.
+
+Step 3: Final Output
+For each of the above MapReduce operations, you can run a query to retrieve the output:
+
+Author-wise list of all books:
+javascript
+Copy code
+db.author_books.find();
+Author-wise list of books with Borrowed status as "True":
+javascript
+Copy code
+db.borrowed_books_by_author.find();
+Author-wise list of books with Price greater than 300:
+javascript
+Copy code
+db.expensive_books_by_author.find();
+Explanation of MapReduce Logic:
+Map Function: The map function processes each document and emits a key-value pair. In our case, we emit the author's name as the key and an array of book titles (or other data) as the value.
+Reduce Function: The reduce function aggregates all values for a given key (author) and combines them into a single output, which is a list of books for that author.
+Output: The results of the map-reduce operations are stored in new collections: author_books, borrowed_books_by_author, and expensive_books_by_author.
+By using this approach, we can efficiently generate lists of books based on different criteria such as borrowed status or price and group them by author.
+
+
+
+
+
+

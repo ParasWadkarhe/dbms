@@ -1,0 +1,122 @@
+To perform the MongoDB operations you listed on an Ubuntu terminal, you'll follow these steps. I'll break it down for you to create the database, collections, and perform the required operations in the MongoDB shell.
+
+Step 1: Create Database DYPIT
+To create a new database named DYPIT in MongoDB, run:
+
+javascript
+Copy code
+use DYPIT
+This will create the database DYPIT and switch to it.
+
+Step 2: Create Collections
+To create the Teachers and Students collections:
+
+javascript
+Copy code
+db.createCollection("Teachers")
+db.createCollection("Students")
+Alternatively, you can insert documents directly into these collections, which will also create them if they don't exist.
+
+Step 3: Insert Sample Data
+Now, insert some sample data into the Teachers and Students collections:
+
+javascript
+Copy code
+db.Teachers.insertMany([
+  { Tname: "Praveen", dno: 101, dname: "Computer", experience: 5, salary: 12000, date_of_joining: new Date("2018-01-15") },
+  { Tname: "Rajesh", dno: 102, dname: "IT", experience: 8, salary: 9000, date_of_joining: new Date("2015-06-10") },
+  { Tname: "Amit", dno: 103, dname: "E&TC", experience: 6, salary: 11000, date_of_joining: new Date("2017-08-01") },
+  { Tname: "Sujay", dno: 104, dname: "Computer", experience: 4, salary: 9500, date_of_joining: new Date("2019-11-22") },
+  { Tname: "Neha", dno: 105, dname: "IT", experience: 7, salary: 10500, date_of_joining: new Date("2016-03-14") },
+  { Tname: "Karan", dno: 106, dname: "Computer", experience: 3, salary: 13000, date_of_joining: new Date("2020-05-05") }
+])
+
+db.Students.insertMany([
+  { Sname: "John", roll_no: 1, class: "X" },
+  { Sname: "Sara", roll_no: 25, class: "XII" },
+  { Sname: "xyz", roll_no: 3, class: "XI" }
+])
+Step 4: Find the Information About Two Teachers
+To find the information about two teachers, you can run:
+
+javascript
+Copy code
+db.Teachers.find().limit(2)
+Step 5: Find the Information About All Teachers of Computer Department
+To find the teachers in the "Computer" department:
+
+javascript
+Copy code
+db.Teachers.find({ dname: "Computer" })
+Step 6: Find the Information About All Teachers of Computer, IT, and E&TC Departments
+To find the teachers in the "Computer", "IT", and "E&TC" departments:
+
+javascript
+Copy code
+db.Teachers.find({ dname: { $in: ["Computer", "IT", "E&TC"] } })
+Step 7: Find Teachers With Salary Greater Than or Equal to 25000
+To find teachers with a salary greater than or equal to 25000:
+
+javascript
+Copy code
+db.Teachers.find({ salary: { $gte: 25000 } })
+Step 8: Find the Student Information Having roll_no = 25 or Sname = xyz
+To find student information where roll_no = 25 or Sname = "xyz":
+
+javascript
+Copy code
+db.Students.find({ $or: [{ roll_no: 25 }, { Sname: "xyz" }] })
+Step 9: Update the Experience of Teacher "Praveen" to 10 Years
+If the entry for "Praveen" doesn't exist, it will be inserted as a new entry.
+
+javascript
+Copy code
+db.Teachers.updateOne(
+  { Tname: "Praveen" },
+  { $set: { experience: 10 } },
+  { upsert: true }
+)
+Step 10: Update the Department of All Teachers in the IT Department to "COMP"
+To update all teachers in the IT department to have the department "COMP":
+
+javascript
+Copy code
+db.Teachers.updateMany(
+  { dname: "IT" },
+  { $set: { dname: "COMP" } }
+)
+Step 11: Find Teachers' Names and Their Experience
+To find all teachers' names and their experience:
+
+javascript
+Copy code
+db.Teachers.find({}, { Tname: 1, experience: 1 })
+Step 12: Insert an Entry in the Department Collection Using save()
+First, create a Department collection if it doesn't exist:
+
+javascript
+Copy code
+db.createCollection("Department")
+Then, insert an entry into the Department collection using save():
+
+javascript
+Copy code
+db.Department.save({ dno: 107, dname: "Mechanical" })
+Step 13: Update Teacher "Rajesh" to IT Department Using save()
+To update Rajesh's department to IT using the save() method:
+
+javascript
+Copy code
+db.Teachers.save({ Tname: "Rajesh", dno: 102, dname: "IT", experience: 8, salary: 9000, date_of_joining: new Date("2015-06-10") })
+Step 14: Delete All Documents From Teachers Collection Having IT Department
+To delete all teachers in the IT department:
+
+javascript
+Copy code
+db.Teachers.deleteMany({ dname: "IT" })
+Step 15: Display the First 5 Documents in Teachers Collection in Ascending Order
+To display the first 5 documents in ascending order:
+
+javascript
+Copy code
+db.Teachers.find().sort({ Tname: 1 }).limit(5).pretty()

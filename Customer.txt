@@ -1,0 +1,114 @@
+Here’s the solution for Problem Statement 2 using MySQL:
+
+1. Create the tables with referential integrity
+We'll create the Customer, Branch, and Account tables while establishing relationships between them using foreign keys.
+
+sql
+Copy code
+CREATE TABLE Customer (
+    CustID INT PRIMARY KEY,
+    Name VARCHAR(100),
+    Cust_Address VARCHAR(255),
+    Phone_no VARCHAR(15),
+    Email_ID VARCHAR(100),
+    Age INT
+);
+
+CREATE TABLE Branch (
+    BranchID INT PRIMARY KEY,
+    Branch_Name VARCHAR(100),
+    Address VARCHAR(255)
+);
+
+CREATE TABLE Account (
+    Account_no INT PRIMARY KEY,
+    BranchID INT,
+    CustID INT,
+    open_date DATE,
+    Account_type VARCHAR(50),
+    Balance DECIMAL(10, 2),
+    FOREIGN KEY (BranchID) REFERENCES Branch(BranchID),
+    FOREIGN KEY (CustID) REFERENCES Customer(CustID)
+);
+2. Insert appropriate data into the tables
+sql
+Copy code
+-- Inserting data into Customer table
+INSERT INTO Customer (CustID, Name, Cust_Address, Phone_no, Email_ID, Age)
+VALUES
+    (101, 'John Doe', '123 Main St, NY', '123-456-7890', 'john.doe@example.com', 30),
+    (102, 'Jane Smith', '456 Oak Rd, LA', '987-654-3210', 'jane.smith@example.com', 25),
+    (103, 'Alice Johnson', '789 Pine Ave, Pune', '555-123-4567', 'alice.johnson@example.com', 35);
+
+-- Inserting data into Branch table
+INSERT INTO Branch (BranchID, Branch_Name, Address)
+VALUES
+    (1, 'Main Branch', '123 Main St, NY'),
+    (2, 'Downtown Branch', '456 Oak Rd, LA');
+
+-- Inserting data into Account table
+INSERT INTO Account (Account_no, BranchID, CustID, open_date, Account_type, Balance)
+VALUES
+    (1001, 1, 101, '2018-01-10', 'Savings', 1000.00),
+    (1002, 2, 102, '2019-05-15', 'Checking', 500.00),
+    (1003, 1, 103, '2018-08-16', 'Savings', 2000.00),
+    (1004, 2, 101, '2020-10-20', 'Loan', 10000.00);
+3. Create a View for Saving account displaying the customer details with the open date as 16/8/2018
+sql
+Copy code
+CREATE VIEW Saving_Account AS
+SELECT C.CustID, C.Name, C.Cust_Address, C.Phone_no, C.Email_ID, C.Age, A.Account_no, A.open_date, A.Account_type, A.Balance
+FROM Customer C
+JOIN Account A ON C.CustID = A.CustID
+WHERE A.open_date = '2018-08-16' AND A.Account_type = 'Savings';
+4. Update the View with Cust_Address as Pune for CustID = 103
+sql
+Copy code
+UPDATE Customer 
+SET Cust_Address = 'Pune'
+WHERE CustID = 103;
+This updates the address in the Customer table. Since the view is based on the Customer and Account tables, it will automatically reflect the updated data.
+5. Create a View for Loan account displaying the customer details with the open date as 16/2/2018
+sql
+Copy code
+CREATE VIEW Loan_Account AS
+SELECT C.CustID, C.Name, C.Cust_Address, C.Phone_no, C.Email_ID, C.Age, A.Account_no, A.open_date, A.Account_type, A.Balance
+FROM Customer C
+JOIN Account A ON C.CustID = A.CustID
+WHERE A.open_date = '2018-02-16' AND A.Account_type = 'Loan';
+6. Create an Index on the primary key column of the Customer table
+sql
+Copy code
+CREATE INDEX idx_customer_custid ON Customer(CustID);
+7. Create an Index on the primary key column of the Branch table
+sql
+Copy code
+CREATE INDEX idx_branch_branchid ON Branch(BranchID);
+8. Create a sequence on the Customer Table
+MySQL doesn't support sequences in the same way as other RDBMS like Oracle or PostgreSQL. However, we can use an AUTO_INCREMENT attribute for CustID to automatically generate unique values for new records.
+
+For the CustID column, we already defined it as a PRIMARY KEY, so it will automatically increment.
+
+Example:
+
+sql
+Copy code
+CREATE TABLE Customer (
+    CustID INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(100),
+    Cust_Address VARCHAR(255),
+    Phone_no VARCHAR(15),
+    Email_ID VARCHAR(100),
+    Age INT
+);
+If you still need to create a manual sequence, you would typically need to handle it via an external counter table or application logic.
+
+9. Create a synonym ‘Cust_info’ for the Branch table
+In MySQL, you can't create synonyms directly as in other database systems like Oracle. However, if you need to mimic a synonym, you can create an alias in a view or a stored procedure.
+
+sql
+Copy code
+CREATE VIEW Cust_info AS
+SELECT * FROM Branch;
+Now, you can refer to Cust_info as if it's the Branch table.
+

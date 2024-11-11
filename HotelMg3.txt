@@ -1,0 +1,120 @@
+-- Step 1: Create Database
+CREATE DATABASE IF NOT EXISTS hotel_management;
+USE hotel_management;
+
+-- Step 2: Create Tables
+CREATE TABLE Hotel (
+    HotelNo INT PRIMARY KEY,
+    Name VARCHAR(50),
+    City VARCHAR(50)
+);
+
+CREATE TABLE Room (
+    RoomNo INT,
+    HotelNo INT,
+    Type VARCHAR(20),
+    Price DECIMAL(10, 2),
+    PRIMARY KEY (HotelNo, RoomNo),
+    FOREIGN KEY (HotelNo) REFERENCES Hotel(HotelNo)
+);
+
+CREATE TABLE Guest (
+    GuestNo INT PRIMARY KEY,
+    GuestName VARCHAR(50),
+    GuestAddress VARCHAR(100)
+);
+
+CREATE TABLE Booking (
+    HotelNo INT,
+    GuestNo INT,
+    DateFrom DATE,
+    DateTo DATE,
+    RoomNo INT,
+    PRIMARY KEY (HotelNo, GuestNo, DateFrom),
+    FOREIGN KEY (HotelNo, RoomNo) REFERENCES Room(HotelNo, RoomNo),
+    FOREIGN KEY (GuestNo) REFERENCES Guest(GuestNo)
+);
+
+-- Step 3: Insert Dummy Data
+INSERT INTO Hotel (HotelNo, Name, City) VALUES
+(1, 'Grosvenor Hotel', 'London'),
+(2, 'Hilton', 'New York'),
+(3, 'Marriott', 'London'),
+(4, 'InterContinental', 'Paris');
+
+INSERT INTO Room (RoomNo, HotelNo, Type, Price) VALUES
+(101, 1, 'Single', 100.00),
+(102, 1, 'Double', 150.00),
+(201, 2, 'Single', 120.00),
+(202, 2, 'Double', 180.00),
+(301, 3, 'Suite', 300.00),
+(302, 3, 'Single', 90.00),
+(401, 4, 'Double', 200.00);
+
+INSERT INTO Guest (GuestNo, GuestName, GuestAddress) VALUES
+(1, 'John Doe', '123 Elm St, London'),
+(2, 'Jane Smith', '456 Maple Ave, New York'),
+(3, 'Sam Brown', '789 Oak Dr, Paris');
+
+INSERT INTO Booking (HotelNo, GuestNo, DateFrom, DateTo, RoomNo) VALUES
+(1, 1, '2024-10-01', '2024-10-10', 101),
+(1, 3, '2024-10-05', '2024-10-12', 102),
+(2, 2, '2024-10-15', '2024-10-20', 201),
+(3, 1, '2024-11-01', '2024-11-05', 302);
+
+-- Queries
+
+-- 1. List full details of all hotels.
+SELECT * FROM Hotel;
+
+-- 2. How many hotels are there?
+SELECT COUNT(*) AS hotel_count FROM Hotel;
+
+-- 3. List the price and type of all rooms at the Grosvenor Hotel.
+SELECT Price, Type
+FROM Room
+JOIN Hotel ON Room.HotelNo = Hotel.HotelNo
+WHERE Hotel.Name = 'Grosvenor Hotel';
+
+-- 4. List the number of rooms in each hotel.
+SELECT HotelNo, COUNT(RoomNo) AS room_count
+FROM Room
+GROUP BY HotelNo;
+
+-- 5. Update the price of all rooms by 5%.
+UPDATE Room
+SET Price = Price * 1.05;
+
+-- 6. List full details of all hotels in London.
+SELECT * FROM Hotel WHERE City = 'London';
+
+-- 7. What is the average price of a room?
+SELECT AVG(Price) AS avg_room_price FROM Room;
+
+-- 8. List all guests currently staying at the Grosvenor Hotel.
+SELECT Guest.GuestName, Guest.GuestAddress
+FROM Guest
+JOIN Booking ON Guest.GuestNo = Booking.GuestNo
+JOIN Hotel ON Booking.HotelNo = Hotel.HotelNo
+WHERE Hotel.Name = 'Grosvenor Hotel' AND CURRENT_DATE BETWEEN Booking.DateFrom AND Booking.DateTo;
+
+-- 9. List the number of rooms in each hotel in London.
+SELECT Hotel.HotelNo, Hotel.Name, COUNT(Room.RoomNo) AS room_count
+FROM Room
+JOIN Hotel ON Room.HotelNo = Hotel.HotelNo
+WHERE Hotel.City = 'London'
+GROUP BY Hotel.HotelNo, Hotel.Name;
+
+-- 10. Create a view and query it.
+-- Creating a view that shows guest bookings with hotel and room details.
+CREATE VIEW GuestBookingDetails AS
+SELECT Guest.GuestName, Hotel.Name AS HotelName, Room.Type AS RoomType, Room.Price, Booking.DateFrom, Booking.DateTo
+FROM Guest
+JOIN Booking ON Guest.GuestNo = Booking.GuestNo
+JOIN Room ON Booking.HotelNo = Room.HotelNo AND Booking.RoomNo = Room.RoomNo
+JOIN Hotel ON Room.HotelNo = Hotel.HotelNo;
+
+-- Querying the view
+SELECT * FROM GuestBookingDetails;
+
+-- End of SQL script

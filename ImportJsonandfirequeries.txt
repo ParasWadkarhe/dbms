@@ -1,0 +1,85 @@
+Steps to Execute MongoDB Operations (Index Creation and Queries):
+1. Import zip.json into MongoDB
+First, ensure that you have a JSON file (in this case, zip.json) that you want to import into MongoDB. To import it, follow these steps:
+
+Open a terminal.
+Navigate to the folder where zip.json is located.
+Use the mongoimport command to import the file into a MongoDB database. Assuming you're importing it into the DYPIT database and the collection is named cities, the command will look like:
+bash
+Copy code
+mongoimport --db DYPIT --collection cities --file zip.json --jsonArray
+This will load the data from zip.json into the cities collection in the DYPIT database.
+
+2. Create Single Field, Composite, and Multikey Indexes
+Once the data is imported, you can create various types of indexes.
+
+Single Field Index: This index is created on one field.
+Composite Index: This index is created on multiple fields.
+Multikey Index: This is used when a field contains an array and you want to index each element in the array.
+Single Field Index (on population)
+This will create an index on the population field of the cities collection:
+
+javascript
+Copy code
+db.cities.createIndex({ population: 1 })  // Ascending order
+Composite Index (on state and city)
+This will create an index on both state and city fields of the cities collection:
+
+javascript
+Copy code
+db.cities.createIndex({ state: 1, city: 1 })  // Ascending order for both fields
+Multikey Index (on location field)
+If the location field is an array (i.e., it contains multiple values), we can create a multikey index:
+
+javascript
+Copy code
+db.cities.createIndex({ location: 1 })  // Automatically treated as a multikey index if the field is an array
+3. Fire Queries and Analysis
+Let’s fire the required queries after the indexes have been created.
+
+Query 1: Display all cities having population above 1600
+This query uses the population field. If you created a single field index on population, it would speed up this query significantly.
+
+javascript
+Copy code
+db.cities.find({ population: { $gt: 1600 } })
+Analysis: The single field index on population helps this query because MongoDB can efficiently use the index to quickly locate the cities with population greater than 1600, avoiding a full scan of the collection.
+Query 2: Display all cities in state "KS"
+This query is based on the state field. If you created a composite index on state and city, MongoDB can use the index to find cities within a specific state very efficiently.
+
+javascript
+Copy code
+db.cities.find({ state: "KS" })
+Analysis: The composite index on state and city allows MongoDB to quickly filter cities in state "KS" using the index, improving the query performance, especially if there are many cities in the collection.
+Query 3: Display location of city "TIMKEN"
+This query looks for a specific city (TIMKEN) and retrieves its location. If the location field is an array and you created a multikey index on location, this query would be optimized.
+
+javascript
+Copy code
+db.cities.find({ city: "TIMKEN" }, { location: 1 })
+Analysis: The multikey index on location allows MongoDB to quickly retrieve the location array for the city "TIMKEN". If the location field is not an array, then this index will behave like a normal single field index.
+Example of Full Command Execution in MongoDB:
+javascript
+Copy code
+// 1. Import the JSON file
+mongoimport --db DYPIT --collection cities --file zip.json --jsonArray
+
+// 2. Create indexes
+db.cities.createIndex({ population: 1 })  // Single Field Index on population
+db.cities.createIndex({ state: 1, city: 1 })  // Composite Index on state and city
+db.cities.createIndex({ location: 1 })  // Multikey Index on location (if it's an array)
+
+// 3. Execute Queries
+
+// Query 1: Cities with population > 1600
+db.cities.find({ population: { $gt: 1600 } })
+
+// Query 2: Cities in state "KS"
+db.cities.find({ state: "KS" })
+
+// Query 3: Location of city "TIMKEN"
+db.cities.find({ city: "TIMKEN" }, { location: 1 })
+Key Points:
+Indexes improve the speed of queries. For example, a single field index on population makes the query for cities with population greater than 1600 faster.
+Composite indexes improve queries that filter or sort by multiple fields, such as state and city in the second query.
+Multikey indexes are helpful when working with arrays (e.g., the location field in the third query), allowing MongoDB to index every element in the array.

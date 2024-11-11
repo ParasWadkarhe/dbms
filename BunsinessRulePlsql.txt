@@ -1,0 +1,31 @@
+DECLARE
+   -- Declare the user-defined exception
+   negative_balance EXCEPTION;
+   
+   -- Variable to store the balance
+   v_bal_due client_master.bal_due%TYPE;
+   
+BEGIN
+   -- Select the balance due for the client (assuming we are checking for a specific client)
+   SELECT bal_due INTO v_bal_due
+   FROM client_master
+   WHERE client_id = :client_id;  -- Assume :client_id is the client's ID inputted by the user
+   
+   -- Check if the balance is less than 0, and raise the exception
+   IF v_bal_due < 0 THEN
+      RAISE negative_balance;
+   END IF;
+   
+   -- If no exception, proceed with normal processing
+   DBMS_OUTPUT.PUT_LINE('Balance is valid. No action required.');
+   
+EXCEPTION
+   -- Handle the exception if balance is negative
+   WHEN negative_balance THEN
+      DBMS_OUTPUT.PUT_LINE('Error: Business rule violation - Balance due is less than 0.');
+      
+   -- Handle any other unexpected errors
+   WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE('Unexpected error: ' || SQLERRM);
+END;
+/

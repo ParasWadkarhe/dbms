@@ -1,0 +1,36 @@
+DECLARE
+    -- Declare a user-defined exception for insufficient balance
+    insufficient_balance EXCEPTION;
+    
+    -- Variables to hold account details
+    v_account_balance NUMBER; -- To hold the current balance in the account
+    v_withdrawal_amount NUMBER; -- To hold the withdrawal amount
+BEGIN
+    -- Simulate user input for account number and withdrawal amount
+    DBMS_OUTPUT.PUT_LINE('Enter Account Number:');
+    -- Assuming the user inputs the account number as substitution variable
+    v_account_balance := &account_balance; -- User input for current balance
+    v_withdrawal_amount := &withdrawal_amount; -- User input for withdrawal amount
+
+    -- Check if the withdrawal is more than the current balance
+    IF v_withdrawal_amount > v_account_balance THEN
+        -- Raise user-defined exception if the withdrawal amount exceeds the balance
+        RAISE insufficient_balance;
+    ELSE
+        -- Process the withdrawal and update the balance
+        UPDATE account_master
+        SET current_balance = current_balance - v_withdrawal_amount
+        WHERE account_number = &account_number;
+        
+        DBMS_OUTPUT.PUT_LINE('Withdrawal successful. New balance is: ' || (v_account_balance - v_withdrawal_amount));
+    END IF;
+    
+    COMMIT; -- Commit the changes to the table
+    
+EXCEPTION
+    WHEN insufficient_balance THEN
+        DBMS_OUTPUT.PUT_LINE('Insufficient balance. Cannot complete withdrawal.');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END;
+/

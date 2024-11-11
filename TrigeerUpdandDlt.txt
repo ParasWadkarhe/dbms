@@ -1,0 +1,60 @@
+18(a) Triggers for Tracking Update and Delete Operations
+We need to create both row-level and statement-level triggers to track updates and deletes on the clientmstr table. The old values of the updated or deleted records should be inserted into an audit_trade table.
+
+Row-Level Trigger for Update:
+This trigger captures updates on each row of the clientmstr table and logs the old values into the audit_trade table.
+
+sql
+Copy code
+CREATE OR REPLACE TRIGGER clientmstr_update_row_trigger
+AFTER UPDATE ON clientmstr
+FOR EACH ROW
+BEGIN
+   -- Insert the old values of the updated record into audit_trade table
+   INSERT INTO audit_trade (client_id, old_name, old_balance, action_type, action_time)
+   VALUES (:OLD.client_id, :OLD.client_name, :OLD.balance, 'UPDATE', SYSDATE);
+END;
+/
+Row-Level Trigger for Delete:
+This trigger captures deletions on each row of the clientmstr table and logs the old values into the audit_trade table.
+
+sql
+Copy code
+CREATE OR REPLACE TRIGGER clientmstr_delete_row_trigger
+AFTER DELETE ON clientmstr
+FOR EACH ROW
+BEGIN
+   -- Insert the old values of the deleted record into audit_trade table
+   INSERT INTO audit_trade (client_id, old_name, old_balance, action_type, action_time)
+   VALUES (:OLD.client_id, :OLD.client_name, :OLD.balance, 'DELETE', SYSDATE);
+END;
+/
+Statement-Level Trigger for Update:
+This trigger captures any update event at the statement level (i.e., when any row is updated in the clientmstr table) and logs a general statement message into the audit_trade table.
+
+sql
+Copy code
+CREATE OR REPLACE TRIGGER clientmstr_update_statement_trigger
+AFTER UPDATE ON clientmstr
+BEGIN
+   -- Insert a message into audit_trade table indicating that an update has occurred
+   INSERT INTO audit_trade (action_type, action_time)
+   VALUES ('UPDATE (STATEMENT LEVEL)', SYSDATE);
+END;
+/
+Statement-Level Trigger for Delete:
+This trigger captures any delete event at the statement level (i.e., when any row is deleted in the clientmstr table) and logs a general statement message into the audit_trade table.
+
+sql
+Copy code
+CREATE OR REPLACE TRIGGER clientmstr_delete_statement_trigger
+AFTER DELETE ON clientmstr
+BEGIN
+   -- Insert a message into audit_trade table indicating that a delete has occurred
+   INSERT INTO audit_trade (action_type, action_time)
+   VALUES ('DELETE (STATEMENT LEVEL)', SYSDATE);
+END;
+/
+Explanation:
+Row-Level Triggers: These triggers insert the old values of the updated or deleted rows into the audit_trade table. For example, the update trigger logs the previous values of client_id, client_name, and balance.
+Statement-Level Triggers: These triggers log a general message indicating that a statement-level update or delete occurred, without capturing the old values of individual rows.

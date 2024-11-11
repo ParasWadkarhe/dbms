@@ -1,0 +1,116 @@
+To solve Problem Statement 4 (Aggregation & Indexing using MongoDB), let's break it down step by step. We need to create the collection Student_Data, perform aggregation queries to display data based on departments, and handle index creation and deletion.
+
+1. Create Collection Student_Data
+We will first create a collection Student_Data with the following fields:
+
+Student_ID (unique identifier for students)
+Student_Name (name of the student)
+Department (department to which the student belongs)
+Marks (marks obtained by the student)
+javascript
+Copy code
+db.createCollection("Student_Data");
+
+db.Student_Data.insertMany([
+  { "Student_ID": 1, "Student_Name": "Alice", "Department": "Computer Science", "Marks": 85 },
+  { "Student_ID": 2, "Student_Name": "Bob", "Department": "Electrical Engineering", "Marks": 90 },
+  { "Student_ID": 3, "Student_Name": "Charlie", "Department": "Mechanical Engineering", "Marks": 88 },
+  { "Student_ID": 4, "Student_Name": "David", "Department": "Computer Science", "Marks": 92 },
+  { "Student_ID": 5, "Student_Name": "Eva", "Department": "Electrical Engineering", "Marks": 78 },
+  { "Student_ID": 6, "Student_Name": "Frank", "Department": "Mechanical Engineering", "Marks": 91 },
+  { "Student_ID": 7, "Student_Name": "Grace", "Department": "Computer Science", "Marks": 88 },
+  { "Student_ID": 8, "Student_Name": "Henry", "Department": "Electrical Engineering", "Marks": 84 },
+  { "Student_ID": 9, "Student_Name": "Ivy", "Department": "Mechanical Engineering", "Marks": 87 },
+  { "Student_ID": 10, "Student_Name": "Jack", "Department": "Computer Science", "Marks": 90 }
+]);
+2. Display All Students Based on Their Departments Along with Average Marks of Each Department
+To display students by department along with the average marks for each department, we can use the $group aggregation operator to group by Department and calculate the average marks for each department.
+
+javascript
+Copy code
+db.Student_Data.aggregate([
+  { 
+    $group: {
+      _id: "$Department",
+      average_marks: { $avg: "$Marks" },
+      students: { $push: { Student_ID: "$Student_ID", Student_Name: "$Student_Name", Marks: "$Marks" } }
+    }
+  },
+  { 
+    $sort: { "_id": 1 }  // Optional: Sort by Department
+  }
+]);
+3. Display the Number of Students Associated with Each Department
+We can count the number of students in each department using the $group and $count stages.
+
+javascript
+Copy code
+db.Student_Data.aggregate([
+  { 
+    $group: {
+      _id: "$Department",
+      student_count: { $sum: 1 }
+    }
+  },
+  { 
+    $sort: { "_id": 1 }  // Optional: Sort by Department
+  }
+]);
+4. Display List of Students with the Highest Marks in Each Department in Descending Order of Marks
+This query requires us to group the students by department, sort them by marks in descending order, and then return only the highest marks for each department.
+
+javascript
+Copy code
+db.Student_Data.aggregate([
+  {
+    $sort: { "Marks": -1 }  // Sort all students in descending order of Marks
+  },
+  {
+    $group: {
+      _id: "$Department",
+      top_student: { $first: { Student_ID: "$Student_ID", Student_Name: "$Student_Name", Marks: "$Marks" } }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      Department: "$_id",
+      Top_Student: "$top_student"
+    }
+  }
+]);
+5. Create an Index on Field Student_ID
+To create an index on the Student_ID field, we can use the following command:
+
+javascript
+Copy code
+db.Student_Data.createIndex({ "Student_ID": 1 });
+This will create an ascending index on the Student_ID field.
+
+6. Create an Index on Fields Student_Name and Department
+To create a compound index on the Student_Name and Department fields, use:
+
+javascript
+Copy code
+db.Student_Data.createIndex({ "Student_Name": 1, "Department": 1 });
+This creates an ascending compound index on both the Student_Name and Department fields.
+
+7. Drop the Index on Field Student_ID
+To drop the index created on the Student_ID field:
+
+javascript
+Copy code
+db.Student_Data.dropIndex({ "Student_ID": 1 });
+8. Drop the Index on Fields Student_Name and Department
+To drop the compound index on the fields Student_Name and Department:
+
+javascript
+Copy code
+db.Student_Data.dropIndex({ "Student_Name": 1, "Department": 1 });
+Summary of Queries:
+1. Average Marks per Department: Using $group and $avg.
+2. Count of Students per Department: Using $group and $sum.
+3. Highest Marks Students per Department: Using $sort, $group, and $first.
+4. Index Creation: Use createIndex() for single and compound indexes.
+5. Drop Indexes: Use dropIndex() to remove specific indexes.
+By using these aggregation operators and indexing commands, we can effectively manage and query the student data in MongoDB.

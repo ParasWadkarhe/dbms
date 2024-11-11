@@ -1,0 +1,29 @@
+DECLARE
+   -- Variable to store the number of rows updated
+   v_rows_updated NUMBER;
+BEGIN
+   -- Update the accounts marked as inactive
+   UPDATE bank_accounts
+   SET status = 'ACTIVE'
+   WHERE status = 'INACTIVE' 
+   AND last_transaction_date < SYSDATE - 365;
+
+   -- Check how many rows were affected
+   v_rows_updated := SQL%ROWCOUNT;
+
+   -- Display appropriate message based on the number of rows updated
+   IF v_rows_updated > 0 THEN
+      DBMS_OUTPUT.PUT_LINE(v_rows_updated || ' accounts have been activated.');
+   ELSE
+      DBMS_OUTPUT.PUT_LINE('No accounts were activated.');
+   END IF;
+   
+   -- Optionally, check if any rows were updated using %FOUND and %NOTFOUND
+   IF SQL%FOUND THEN
+      DBMS_OUTPUT.PUT_LINE('Update was successful.');
+   ELSE
+      DBMS_OUTPUT.PUT_LINE('No records were found for the update.');
+   END IF;
+
+END;
+/

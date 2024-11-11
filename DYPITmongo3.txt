@@ -1,0 +1,116 @@
+To execute the MongoDB tasks you listed, follow the steps outlined below. This guide assumes you're working in the MongoDB shell or using MongoDB Compass.
+
+Step 1: Create the Database and Collections
+In MongoDB, to create a database and collections, you will use the use command to switch to the database (which also creates it), followed by the createCollection() method to create collections.
+
+Create the DYPIT Database:
+javascript
+Copy code
+use DYPIT
+This will switch to the DYPIT database (and create it if it doesn't exist).
+
+Create the Collections:
+javascript
+Copy code
+db.createCollection("Teachers")
+db.createCollection("Students")
+Alternatively, you can insert documents into these collections and MongoDB will automatically create them for you.
+
+Step 2: Insert Sample Data
+Insert Data into the Teachers Collection:
+javascript
+Copy code
+db.Teachers.insertMany([
+  { Tname: "Praveen", dno: 101, dname: "Computer", experience: 5, salary: 12000, date_of_joining: new Date("2018-01-15") },
+  { Tname: "Rajesh", dno: 102, dname: "IT", experience: 8, salary: 9000, date_of_joining: new Date("2015-06-10") },
+  { Tname: "Amit", dno: 103, dname: "E&TC", experience: 6, salary: 11000, date_of_joining: new Date("2017-08-01") },
+  { Tname: "Sujay", dno: 104, dname: "Computer", experience: 4, salary: 9500, date_of_joining: new Date("2019-11-22") },
+  { Tname: "Neha", dno: 105, dname: "IT", experience: 7, salary: 10500, date_of_joining: new Date("2016-03-14") },
+  { Tname: "Karan", dno: 106, dname: "Computer", experience: 3, salary: 13000, date_of_joining: new Date("2020-05-05") }
+])
+Insert Data into the Students Collection:
+javascript
+Copy code
+db.Students.insertMany([
+  { Sname: "John", roll_no: 1, class: "X" },
+  { Sname: "Sara", roll_no: 25, class: "XII" },
+  { Sname: "xyz", roll_no: 3, class: "XI" }
+])
+Step 3: Find the Information About All Teachers
+To get the information of all teachers, run:
+
+javascript
+Copy code
+db.Teachers.find()
+Step 4: Find the Average Salary of Teachers in the Computer Department
+To calculate the average salary of teachers in the "Computer" department:
+
+javascript
+Copy code
+db.Teachers.aggregate([
+  { $match: { dname: "Computer" } },
+  { $group: { _id: "$dname", avgSalary: { $avg: "$salary" } } }
+])
+Step 5: Find the Minimum and Maximum Salary of E&TC Department Teachers
+To find the minimum and maximum salary of teachers in the "E&TC" department:
+
+javascript
+Copy code
+db.Teachers.aggregate([
+  { $match: { dname: "E&TC" } },
+  { $group: { _id: "$dname", minSalary: { $min: "$salary" }, maxSalary: { $max: "$salary" } } }
+])
+Step 6: Find Teachers of Computer, IT, and E&TC Departments with Salary Greater Than or Equal to 10000
+To find teachers from the "Computer", "IT", and "E&TC" departments with salary >= 10,000:
+
+javascript
+Copy code
+db.Teachers.find({
+  dname: { $in: ["Computer", "IT", "E&TC"] },
+  salary: { $gte: 10000 }
+})
+Step 7: Find Student Information with roll_no = 2 or Sname = xyz
+To find students with roll_no = 2 or Sname = "xyz":
+
+javascript
+Copy code
+db.Students.find({ $or: [{ roll_no: 2 }, { Sname: "xyz" }] })
+Step 8: Update the Experience of Teacher "Praveen" to 10 Years (Insert if Not Found)
+To update Praveen's experience to 10 years, or insert the record if it doesn't exist:
+
+javascript
+Copy code
+db.Teachers.updateOne(
+  { Tname: "Praveen" },
+  { $set: { experience: 10 } },
+  { upsert: true }
+)
+Step 9: Update the Department of All Teachers in the IT Department to "COMP"
+To update the department of all teachers in the "IT" department to "COMP":
+
+javascript
+Copy code
+db.Teachers.updateMany(
+  { dname: "IT" },
+  { $set: { dname: "COMP" } }
+)
+Step 10: Find Teachers' Names and Their Experience
+To find all teachers' names and their experience:
+
+javascript
+Copy code
+db.Teachers.find({}, { Tname: 1, experience: 1 })
+Step 11: Insert One Entry in the Department Collection Using save()
+To insert an entry in the Department collection using the save() method:
+
+javascript
+Copy code
+db.Department.save({ dno: 107, dname: "Mechanical" })
+Step 12: Find the Total Salary of All Teachers
+To find the total salary of all teachers:
+
+javascript
+Copy code
+db.Teachers.aggregate([
+  { $group: { _id: null, totalSalary: { $sum: "$salary" } } }
+])

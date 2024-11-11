@@ -1,0 +1,107 @@
+To solve Problem Statement 5 (DML using MySQL), I'll guide you through the necessary steps to create the tables, insert appropriate data, and then perform the required queries.
+
+Step 1: Create the Tables
+The schema given consists of three tables: Customer, Branch, and Account.
+
+sql
+Copy code
+CREATE TABLE Customer (
+    CustID INT PRIMARY KEY,
+    Name VARCHAR(100),
+    Cust_Address VARCHAR(255),
+    Phone_no VARCHAR(15),
+    Age INT
+);
+
+CREATE TABLE Branch (
+    BranchID INT PRIMARY KEY,
+    Branch_Name VARCHAR(100),
+    Address VARCHAR(255)
+);
+
+CREATE TABLE Account (
+    Account_no INT PRIMARY KEY,
+    BranchID INT,
+    CustID INT,
+    date_open DATE,
+    Account_type VARCHAR(50),
+    Balance DECIMAL(10, 2),
+    FOREIGN KEY (BranchID) REFERENCES Branch(BranchID),
+    FOREIGN KEY (CustID) REFERENCES Customer(CustID)
+);
+Step 2: Insert Data into the Tables
+You can insert some sample data into the Customer, Branch, and Account tables.
+
+sql
+Copy code
+-- Insert sample data into Customer table
+INSERT INTO Customer (CustID, Name, Cust_Address, Phone_no, Age) VALUES
+(1, 'Alice', 'Pune', '9876543210', 40),
+(2, 'Bob', 'Mumbai', '9123456789', 30),
+(3, 'Charlie', 'Pune', '9345678901', 45),
+(4, 'David', 'Bangalore', '9888776655', 32),
+(5, 'Eva', 'Pune', '9998887777', 50);
+
+-- Insert sample data into Branch table
+INSERT INTO Branch (BranchID, Branch_Name, Address) VALUES
+(1, 'Main Branch', 'Pune'),
+(2, 'South Branch', 'Mumbai'),
+(3, 'East Branch', 'Bangalore');
+
+-- Insert sample data into Account table
+INSERT INTO Account (Account_no, BranchID, CustID, date_open, Account_type, Balance) VALUES
+(101, 1, 1, '2020-01-15', 'Saving Account', 20000.00),
+(102, 1, 2, '2019-05-22', 'Current Account', 10000.00),
+(103, 2, 3, '2021-03-10', 'Saving Account', 5000.00),
+(104, 3, 4, '2022-07-19', 'Saving Account', 15000.00),
+(105, 2, 5, '2020-11-10', 'Current Account', 30000.00);
+Step 3: Perform the Queries
+1. Add the column "Email_Address" in Customer table.
+sql
+Copy code
+ALTER TABLE Customer ADD COLUMN Email_Address VARCHAR(100);
+2. Change the name of column "Email_Address" to "Email_ID" in Customer table.
+sql
+Copy code
+ALTER TABLE Customer CHANGE COLUMN Email_Address Email_ID VARCHAR(100);
+3. Display the customer details with the highest balance in the account.
+sql
+Copy code
+SELECT c.CustID, c.Name, c.Cust_Address, c.Phone_no, c.Age, a.Balance
+FROM Customer c
+JOIN Account a ON c.CustID = a.CustID
+WHERE a.Balance = (SELECT MAX(Balance) FROM Account);
+4. Display the customer details with the lowest balance for account type = "Saving Account".
+sql
+Copy code
+SELECT c.CustID, c.Name, c.Cust_Address, c.Phone_no, c.Age, a.Balance
+FROM Customer c
+JOIN Account a ON c.CustID = a.CustID
+WHERE a.Account_type = 'Saving Account'
+AND a.Balance = (SELECT MIN(Balance) FROM Account WHERE Account_type = 'Saving Account');
+5. Display the customer details that live in Pune and have age greater than 35.
+sql
+Copy code
+SELECT * FROM Customer
+WHERE Cust_Address = 'Pune' AND Age > 35;
+6. Display the CustID, Name, and Age of the customer in ascending order of their age.
+sql
+Copy code
+SELECT CustID, Name, Age FROM Customer
+ORDER BY Age ASC;
+7. Display the Name and BranchID of the customer grouped by the Account_type.
+sql
+Copy code
+SELECT a.Account_type, c.Name, a.BranchID
+FROM Account a
+JOIN Customer c ON a.CustID = c.CustID
+GROUP BY a.Account_type, c.Name, a.BranchID;
+Explanation of Queries:
+Add Column: ALTER TABLE adds a new column Email_Address.
+Rename Column: ALTER TABLE changes the name of Email_Address to Email_ID.
+Highest Balance: We join Customer and Account tables, then use a subquery to get the maximum balance.
+Lowest Balance for Saving Account: A similar query to the highest balance, but filtered by Account_type = 'Saving Account'.
+Customer in Pune with Age > 35: We filter customers who live in Pune and have an age greater than 35.
+Order by Age: A simple ORDER BY on the Age column to display customers in ascending order of age.
+Group by Account Type: We group by Account_type and display the customer Name and BranchID.
+These queries will help you perform the DML operations and provide the necessary outputs for the given problem statement.

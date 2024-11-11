@@ -1,0 +1,80 @@
+-- Step 1: Create Database
+CREATE DATABASE IF NOT EXISTS project_management;
+USE project_management;
+
+-- Step 2: Create Tables
+CREATE TABLE Project (
+    project_id VARCHAR(10) PRIMARY KEY,
+    proj_name VARCHAR(50),
+    chief_arch VARCHAR(50)
+);
+
+CREATE TABLE Employee (
+    Emp_id INT PRIMARY KEY,
+    Emp_name VARCHAR(50)
+);
+
+CREATE TABLE Assigned_To (
+    Project_id VARCHAR(10),
+    Emp_id INT,
+    FOREIGN KEY (Project_id) REFERENCES Project(project_id),
+    FOREIGN KEY (Emp_id) REFERENCES Employee(Emp_id)
+);
+
+-- Step 3: Insert Dummy Data
+INSERT INTO Project (project_id, proj_name, chief_arch) VALUES
+('C353', 'Database Project', 'Alice Brown'),
+('C354', 'Web Development Project', 'Bob Smith'),
+('C453', 'AI Project', 'Carol Johnson');
+
+INSERT INTO Employee (Emp_id, Emp_name) VALUES
+(1, 'John Doe'),
+(2, 'Jane Smith'),
+(3, 'Sam Green'),
+(4, 'Lucy Gray');
+
+INSERT INTO Assigned_To (Project_id, Emp_id) VALUES
+('C353', 1),
+('C353', 2),
+('C354', 2),
+('C354', 3),
+('C453', 4),
+('C453', 1);
+
+-- Queries
+
+-- 1. Get the details of employees working on project C353
+SELECT Employee.Emp_id, Employee.Emp_name
+FROM Employee
+JOIN Assigned_To ON Employee.Emp_id = Assigned_To.Emp_id
+WHERE Assigned_To.Project_id = 'C353';
+
+-- 2. Get employee numbers of employees working on project C353
+SELECT Emp_id
+FROM Assigned_To
+WHERE Project_id = 'C353';
+
+-- 3. Obtain details of employees working on the Database project
+SELECT Employee.Emp_id, Employee.Emp_name
+FROM Employee
+JOIN Assigned_To ON Employee.Emp_id = Assigned_To.Emp_id
+JOIN Project ON Assigned_To.Project_id = Project.project_id
+WHERE Project.proj_name = 'Database Project';
+
+-- 4. Get details of employees working on both C353 and C354
+SELECT Employee.Emp_id, Employee.Emp_name
+FROM Employee
+JOIN Assigned_To A1 ON Employee.Emp_id = A1.Emp_id
+JOIN Assigned_To A2 ON Employee.Emp_id = A2.Emp_id
+WHERE A1.Project_id = 'C353' AND A2.Project_id = 'C354';
+
+-- 5. Get employee numbers of employees who do not work on project C453
+SELECT Emp_id
+FROM Employee
+WHERE Emp_id NOT IN (
+    SELECT Emp_id
+    FROM Assigned_To
+    WHERE Project_id = 'C453'
+);
+
+-- End of SQL script

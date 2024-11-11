@@ -1,0 +1,26 @@
+DECLARE
+   -- Variable to store the average salary
+   v_avg_salary NUMBER;
+BEGIN
+   -- Calculate the average salary of the organization
+   SELECT AVG(salary) INTO v_avg_salary
+   FROM employees;
+
+   -- Update the salaries for employees with less than average salary
+   UPDATE employees
+   SET salary = salary * 1.10
+   WHERE salary < v_avg_salary;
+
+   -- Insert a record into the increment_salary table
+   INSERT INTO increment_salary (employee_id, old_salary, new_salary, increment_date)
+   SELECT employee_id, salary / 1.10, salary, SYSDATE
+   FROM employees
+   WHERE salary < v_avg_salary;
+
+   -- Commit the changes
+   COMMIT;
+   
+   -- Output message
+   DBMS_OUTPUT.PUT_LINE('Salaries of employees with below-average salary have been increased by 10%.');
+END;
+/

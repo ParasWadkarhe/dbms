@@ -1,0 +1,73 @@
+1. Create the Student Table:
+sql
+Copy code
+CREATE TABLE Student (
+    Roll_No VARCHAR(10),
+    Name VARCHAR(50),
+    Class VARCHAR(10),
+    Marks INT,
+    Address VARCHAR(100),
+    Enrolled_Courses VARCHAR(255)
+);
+2. Insert 10 records into the Student Table:
+sql
+Copy code
+INSERT INTO Student (Roll_No, Name, Class, Marks, Address, Enrolled_Courses)
+VALUES
+    ('A1', 'Alice', 'SE', 80, 'Street 1', 'DBMS,TOC'),
+    ('A2', 'Bob', 'SE', 60, 'Street 2', 'DBMS,OS'),
+    ('A3', 'Charlie', 'TE', 45, 'Street 3', 'DBMS,TOC'),
+    ('A4', 'David', 'TE', 55, 'Street 4', 'TOC,AI'),
+    ('A5', 'Eve', 'BE', 90, 'Street 5', 'DBMS,AI'),
+    ('A6', 'Frank', 'BE', 50, 'Street 6', 'DBMS,AI'),
+    ('A7', 'Grace', 'BE', 30, 'Street 7', 'DBMS,TOC'),
+    ('A8', 'Hank', 'TE', 70, 'Street 8', 'DBMS,AI'),
+    ('A9', 'Ivy', 'SE', 75, 'Street 9', 'DBMS,TOC'),
+    ('A10', 'Jack', 'SE', 95, 'Street 10', 'AI,TOC');
+3. List the names of students who have enrolled in the course “DBMS”, “TOC”.
+sql
+Copy code
+SELECT Name 
+FROM Student
+WHERE FIND_IN_SET('DBMS', Enrolled_Courses) > 0 
+AND FIND_IN_SET('TOC', Enrolled_Courses) > 0;
+FIND_IN_SET is used to check if the student is enrolled in both "DBMS" and "TOC".
+4. List the Roll numbers and class of students who have marks more than 50 or class as TE.
+sql
+Copy code
+SELECT Roll_No, Class 
+FROM Student
+WHERE Marks > 50 OR Class = 'TE';
+This query uses OR to find students with marks greater than 50 or who belong to the "TE" class.
+5. Update the entire record of Roll_No "A10".
+sql
+Copy code
+UPDATE Student 
+SET Name = 'John', 
+    Class = 'BE', 
+    Marks = 85, 
+    Address = 'Street 20', 
+    Enrolled_Courses = 'DBMS,AI'
+WHERE Roll_No = 'A10';
+This query updates the record of student with Roll_No = 'A10'.
+6. Display the names of students having 3rd and 4th highest marks.
+sql
+Copy code
+SELECT Name
+FROM Student
+ORDER BY Marks DESC
+LIMIT 2 OFFSET 2;
+LIMIT with OFFSET is used to skip the top two records and return the next two, which are the 3rd and 4th highest.
+7. Delete the records of students having marks less than 20.
+sql
+Copy code
+DELETE FROM Student
+WHERE Marks < 20;
+This deletes all records where the marks are less than 20.
+8. Delete only the first record from the collection.
+sql
+Copy code
+DELETE FROM Student
+ORDER BY Roll_No
+LIMIT 1;
+This deletes the first student based on the Roll_No order. If you have a specific column (e.g., an ID) for ordering, you can adjust the ORDER BY clause accordingly.

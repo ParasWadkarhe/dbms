@@ -1,0 +1,41 @@
+DECLARE
+   -- Declare an explicit cursor to fetch students with less than 75% attendance
+   CURSOR c_detained_students IS
+      SELECT roll, att
+      FROM stud21
+      WHERE att < 75;
+
+   -- Variables to store student details
+   v_roll stud21.roll%TYPE;
+   v_att stud21.att%TYPE;
+BEGIN
+   -- Open the cursor
+   OPEN c_detained_students;
+   
+   -- Loop through each student fetched by the cursor
+   LOOP
+      FETCH c_detained_students INTO v_roll, v_att;
+      
+      -- Exit the loop if no more records are fetched
+      EXIT WHEN c_detained_students%NOTFOUND;
+      
+      -- Update the student's status to 'D' (Detained)
+      UPDATE stud21
+      SET status = 'D'
+      WHERE roll = v_roll;
+      
+      -- Insert the detained student into the D_Stud table
+      INSERT INTO D_Stud (roll, att, status, detained_date)
+      VALUES (v_roll, v_att, 'D', SYSDATE);
+   END LOOP;
+   
+   -- Close the cursor
+   CLOSE c_detained_students;
+   
+   -- Commit the changes
+   COMMIT;
+   
+   -- Output message
+   DBMS_OUTPUT.PUT_LINE('All students with less than 75% attendance have been marked as detained.');
+END;
+/

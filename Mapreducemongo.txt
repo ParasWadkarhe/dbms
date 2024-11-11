@@ -1,0 +1,79 @@
+To solve the given queries using MapReduce in MongoDB, we need to work with a collection that stores documents with fields like id, name, email, work, age, gender, Salary, and hobbies. Below is how we can use MapReduce to answer the queries.
+
+1. Get the Count of Males and Females
+Map Function:
+The map function will emit the gender field for each document, counting how many males and how many females are present.
+
+Reduce Function:
+The reduce function will aggregate the counts for each gender.
+
+MapReduce for Counting Males and Females:
+javascript
+Copy code
+var map = function() {
+  // Emit gender as the key
+  emit(this.gender, 1);
+};
+
+var reduce = function(key, values) {
+  // Sum the counts for each gender
+  return Array.sum(values);
+};
+
+// Run the MapReduce operation
+db.collection.mapReduce(map, reduce, { out: { inline: 1 } });
+Explanation:
+Map: For each document, we emit the gender (either "Male" or "Female") as the key and a value of 1 to count each occurrence.
+Reduce: The reduce function simply sums up the values for each gender (i.e., counting how many times each gender appears).
+Output: We output the result inline, so the result is directly returned without being stored in a collection.
+Example Output:
+json
+Copy code
+[
+  { "_id": "Male", "value": 1 },
+  { "_id": "Female", "value": 0 }
+]
+This result shows the count of males and females in the collection.
+
+2. Count the Number of Users in Each Hobby
+The hobbies field contains a comma-separated list of hobbies, so we need to split the hobbies into individual elements and then count how many times each hobby appears.
+
+Map Function:
+The map function will split the hobbies string into individual hobbies and emit each hobby as the key, with a value of 1.
+
+Reduce Function:
+The reduce function will aggregate the counts for each hobby.
+
+MapReduce for Counting Hobbies:
+javascript
+Copy code
+var map = function() {
+  // Split the 'hobbies' string by commas to get an array of hobbies
+  var hobbies = this.hobbies.split(',');
+  
+  // Emit each hobby as a key and count it with value 1
+  hobbies.forEach(function(hobby) {
+    emit(hobby.trim(), 1);  // trim to remove any leading or trailing spaces
+  });
+};
+
+var reduce = function(key, values) {
+  // Sum the values (counts) for each hobby
+  return Array.sum(values);
+};
+
+// Run the MapReduce operation
+db.collection.mapReduce(map, reduce, { out: { inline: 1 } });
+Explanation:
+Map: The map function splits the hobbies field into an array using split(',') and then emits each hobby with a value of 1.
+Reduce: The reduce function sums the values (i.e., counts the number of occurrences of each hobby).
+Output: The result is returned inline, showing the counts of each individual hobby.
+Example Output:
+json
+Copy code
+[
+  { "_id": "Acrobatics", "value": 1 },
+  { "_id": "Photography", "value": 1 },
+  { "_id": "Papier-Mache", "value": 1 }
+]
+This result shows the count of each hobby in the collection. Each hobby is counted by how many times it appears in the hobbies field.

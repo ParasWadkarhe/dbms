@@ -1,0 +1,116 @@
+Here is a PL/SQL unnamed block that handles the requirements of Problem Statement 3 for updating the salary of an employee based on their years of experience.
+
+Assumptions:
+The Employee table has the following structure:
+
+sql
+Copy code
+Employee(
+  emp_id NUMBER, 
+  dept_id NUMBER, 
+  emp_name VARCHAR2(100), 
+  DoJ DATE, 
+  salary NUMBER, 
+  commission NUMBER, 
+  job_title VARCHAR2(50)
+);
+The Salary_Increment table structure:
+
+sql
+Copy code
+Salary_Increment(
+  emp_id NUMBER,
+  new_salary NUMBER
+);
+PL/SQL Block Explanation:
+The block will accept an employee ID from the user.
+It will calculate the years of experience using the DoJ field (Date of Joining).
+Based on the years of experience, the salary will be incremented:
+> 10 years: Increase salary by 20%.
+> 5 years: Increase salary by 10%.
+Otherwise: Increase salary by 5%.
+The updated salary is stored in the Salary_Increment table.
+Exception handling is added to handle cases like employee not found, invalid employee ID, or other database errors.
+PL/SQL Block Code:
+sql
+Copy code
+DECLARE
+  -- Declare variables
+  v_emp_id Employee.emp_id%TYPE;
+  v_emp_name Employee.emp_name%TYPE;
+  v_doj Employee.DoJ%TYPE;
+  v_salary Employee.salary%TYPE;
+  v_new_salary Employee.salary%TYPE;
+  v_experience NUMBER;
+  
+  -- Declare exceptions
+  emp_not_found EXCEPTION;
+  v_invalid_id EXCEPTION;
+BEGIN
+  -- Accept emp_id from the user
+  v_emp_id := &emp_id;
+
+  -- Retrieve the employee details from the Employee table
+  SELECT emp_name, DoJ, salary
+  INTO v_emp_name, v_doj, v_salary
+  FROM Employee
+  WHERE emp_id = v_emp_id;
+  
+  -- Calculate years of experience
+  v_experience := TRUNC(MONTHS_BETWEEN(SYSDATE, v_doj) / 12);
+  
+  -- Determine the salary increment based on the years of experience
+  IF v_experience > 10 THEN
+    v_new_salary := v_salary * 1.20;  -- 20% increase
+  ELSIF v_experience > 5 THEN
+    v_new_salary := v_salary * 1.10;  -- 10% increase
+  ELSE
+    v_new_salary := v_salary * 1.05;  -- 5% increase
+  END IF;
+  
+  -- Insert the new salary into the Salary_Increment table
+  INSERT INTO Salary_Increment(emp_id, new_salary)
+  VALUES (v_emp_id, v_new_salary);
+  
+  -- Commit the transaction
+  COMMIT;
+  
+  -- Output the updated salary
+  DBMS_OUTPUT.PUT_LINE('Employee ' || v_emp_name || ' (ID: ' || v_emp_id || ') with experience ' || v_experience || ' years has a new salary: ' || v_new_salary);
+
+EXCEPTION
+  -- Exception handling for employee not found
+  WHEN NO_DATA_FOUND THEN
+    DBMS_OUTPUT.PUT_LINE('Error: Employee with ID ' || v_emp_id || ' not found.');
+  -- Exception handling for invalid employee ID
+  WHEN v_invalid_id THEN
+    DBMS_OUTPUT.PUT_LINE('Error: Invalid Employee ID entered.');
+  -- General exception handling for other errors
+  WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+    ROLLBACK;
+END;
+Explanation:
+Input Acceptance:
+
+The employee ID (emp_id) is accepted dynamically using the substitution variable &emp_id.
+Data Retrieval:
+
+A SELECT INTO query fetches the employee's name, date of joining (DoJ), and salary based on the emp_id.
+Experience Calculation:
+
+The number of years of experience is calculated by finding the difference in months between the current date (SYSDATE) and the DoJ and dividing by 12. This gives the years of experience.
+Salary Increment Logic:
+
+Based on the years of experience, the salary is increased by:
+20% for more than 10 years of experience.
+10% for more than 5 years but not more than 10 years.
+5% for 5 years or less.
+Insert Updated Salary:
+
+The new salary is inserted into the Salary_Increment table.
+Exception Handling:
+
+If no employee is found with the given emp_id, a NO_DATA_FOUND exception is raised.
+Other possible exceptions, such as invalid inputs or database errors, are captured by the OTHERS exception handler, and an appropriate message is printed.
+The ROLLBACK statement is used to undo any changes in case of an error.s

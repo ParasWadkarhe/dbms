@@ -1,0 +1,39 @@
+18(b) Before Trigger for Insert and Update on Emp Table:
+We need a trigger that prevents inserts or updates if the salary is less than Rs. 50,000/- in the Emp table. If an attempt is made to insert or update with a salary lower than this threshold, the operation is rejected, and the attempted values are logged into a separate Tracking table.
+
+Before Trigger for Insert:
+sql
+Copy code
+CREATE OR REPLACE TRIGGER emp_insert_trigger
+BEFORE INSERT ON Emp
+FOR EACH ROW
+BEGIN
+   -- Check if the salary is less than 50,000
+   IF :NEW.salary < 50000 THEN
+      -- Rejection of the insert operation
+      RAISE_APPLICATION_ERROR(-20001, 'Salary must be at least 50,000');
+   ELSE
+      -- Log the salary to Tracking table
+      INSERT INTO Tracking (e_no, salary)
+      VALUES (:NEW.e_no, :NEW.salary);
+   END IF;
+END;
+/
+Before Trigger for Update:
+sql
+Copy code
+CREATE OR REPLACE TRIGGER emp_update_trigger
+BEFORE UPDATE ON Emp
+FOR EACH ROW
+BEGIN
+   -- Check if the new salary is less than 50,000
+   IF :NEW.salary < 50000 THEN
+      -- Rejection of the update operation
+      RAISE_APPLICATION_ERROR(-20002, 'Salary must be at least 50,000');
+   ELSE
+      -- Log the new salary to Tracking table
+      INSERT INTO Tracking (e_no, salary)
+      VALUES (:NEW.e_no, :NEW.salary);
+   END IF;
+END;
+/

@@ -1,0 +1,57 @@
+DECLARE
+   -- Declare a user-defined exception for invalid days range
+   invalid_days EXCEPTION;
+   
+   -- Variables for calculation
+   v_date_of_issue Borrow.DateofIssue%TYPE;
+   v_current_date DATE;
+   v_no_of_days NUMBER;
+   v_fine_amt NUMBER;
+   
+BEGIN
+   -- Accept Roll No and Book Name from user input
+   -- Assuming :roll_no and :book_name are input by the user
+   SELECT DateofIssue INTO v_date_of_issue
+   FROM Borrow
+   WHERE Roll_no = :roll_no AND NameofBook = :book_name;
+   
+   -- Calculate the number of days between the issue date and the current date
+   v_current_date := SYSDATE;
+   v_no_of_days := v_current_date - v_date_of_issue;
+   
+   -- Fine calculation logic based on the number of days
+   IF v_no_of_days BETWEEN 15 AND 30 THEN
+      v_fine_amt := v_no_of_days * 5;  -- Rs 5 per day if between 15 and 30 days
+   ELSIF v_no_of_days > 30 THEN
+      v_fine_amt := v_no_of_days * 50;  -- Rs 50 per day if greater than 30 days
+   ELSIF v_no_of_days < 15 THEN
+      v_fine_amt := v_no_of_days * 5;  -- Rs 5 per day if less than 15 days
+   ELSE
+      -- Raise exception if no valid condition is met
+      RAISE invalid_days;
+   END IF;
+   
+   -- If fine is calculated, insert the fine details into the Fine table
+   IF v_fine_amt > 0 THEN
+      INSERT INTO Fine (Roll_no, Date, Amt)
+      VALUES (:roll_no, v_current_date, v_fine_amt);
+   END IF;
+   
+   -- Update the status in the Borrow table from 'I' (Issued) to 'R' (Returned)
+   UPDATE Borrow
+   SET Status = 'R'
+   WHERE Roll_no = :roll_no AND NameofBook = :book_name;
+   
+   -- Display success message
+   DBMS_OUTPUT.PUT_LINE('Book returned successfully. Fine Amount: Rs ' || v_fine_amt);
+   
+EXCEPTION
+   -- Handle the invalid days range exception
+   WHEN invalid_days THEN
+      DBMS_OUTPUT.PUT_LINE('Error: Invalid days range for fine calculation.');
+      
+   -- Handle any other unexpected errors
+   WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE('Unexpected error: ' || SQLERRM);
+END;
+/

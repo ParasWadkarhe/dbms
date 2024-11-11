@@ -1,0 +1,37 @@
+DECLARE
+    v_roll_no NUMBER; -- Variable to store the roll number entered by the user
+    v_attendance NUMBER; -- Variable to store the attendance percentage
+BEGIN
+    -- Accept the roll number as input from the user
+    DBMS_OUTPUT.PUT_LINE('Enter Roll Number:');
+    -- Simulate user input
+    v_roll_no := &roll_no; -- Assuming the user enters the roll number through substitution variable
+
+    -- Fetch the attendance of the entered roll number
+    SELECT Att INTO v_attendance 
+    FROM Stud 
+    WHERE Roll = v_roll_no;
+    
+    -- Check if the attendance is less than 75%
+    IF v_attendance < 75 THEN
+        -- Display the message and update the status to 'D'
+        DBMS_OUTPUT.PUT_LINE('Term not granted');
+        UPDATE Stud
+        SET Status = 'D'
+        WHERE Roll = v_roll_no;
+    ELSE
+        -- Display the message and update the status to 'ND'
+        DBMS_OUTPUT.PUT_LINE('Term granted');
+        UPDATE Stud
+        SET Status = 'ND'
+        WHERE Roll = v_roll_no;
+    END IF;
+
+    COMMIT; -- Commit the changes to the table
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('No record found for the given roll number');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END;
+/

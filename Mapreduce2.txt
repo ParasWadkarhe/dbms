@@ -1,0 +1,65 @@
+To solve the given queries using MapReduce in MongoDB, we first need to import the zip.json collection and then calculate the total population in each state. Below is a detailed guide on how to do that:
+
+1. Import zip.json to MongoDB
+Assuming that you have a JSON file zip.json which contains information about cities and their populations, you can import it into MongoDB using the mongoimport command.
+
+In the terminal, run the following command to import the data:
+
+bash
+Copy code
+mongoimport --db DYPIT --collection zip --file zip.json --jsonArray
+This will import the zip.json file into the DYPIT database and create the zip collection.
+
+2. Find the Total Population in Each State Using MapReduce
+Now that we have the data imported, we will write a MapReduce query to calculate the total population for each state.
+
+Map Function:
+The map function will emit the state as the key and the population as the value for each document.
+
+Reduce Function:
+The reduce function will sum up the populations for each state.
+
+MapReduce Code:
+javascript
+Copy code
+var map = function() {
+  // Emit state as the key and the population as the value
+  emit(this.state, this.population);
+};
+
+var reduce = function(key, values) {
+  // Sum the populations for each state
+  return Array.sum(values);
+};
+
+// Run the MapReduce operation
+db.zip.mapReduce(map, reduce, { out: { inline: 1 } });
+Explanation:
+Map: For each document, we emit the state (this.state) as the key and the population (this.population) as the value. This creates a key-value pair for each city, where the key is the state and the value is the population.
+
+Reduce: The reduce function aggregates the populations by summing them up for each state. Array.sum(values) is used to sum the array of population values for each state.
+
+Output: The result will be returned inline, showing the total population for each state.
+
+Example Output:
+json
+Copy code
+[
+  { "_id": "KS", "value": 500000 },
+  { "_id": "NY", "value": 1000000 },
+  { "_id": "CA", "value": 2500000 }
+]
+This output shows the total population for each state. Each document has an _id field (which corresponds to the state) and a value field (which represents the total population for that state).
+
+Conclusion:
+Using MapReduce in MongoDB, we can easily calculate the total population for each state in the collection. The steps include:
+
+Importing the zip.json data using mongoimport.
+Creating a MapReduce function that emits the state and population, and then reduces the population by summing the values for each state.
+This is an efficient way to perform aggregation in MongoDB when you need to group and summarize data based on specific criteria (in this case, by state).
+
+
+
+
+
+

@@ -1,0 +1,93 @@
+To implement the required queries using MongoDB, follow these steps:
+
+1. Create a Collection Called ‘games’
+We will start by creating a collection called games to store the games data.
+
+javascript
+Copy code
+use DYPIT;  // Use the DYPIT database or any other database where you want to store the collection
+db.createCollection('games');  // Create the 'games' collection
+2. Add 5 Games to the Database
+Now, we will insert 5 sample games with properties like name, gametype, and rating. Additionally, we will add an achievements field to some games as required in the subsequent queries.
+
+javascript
+Copy code
+db.games.insertMany([
+  {
+    name: "Game A",
+    gametype: "Action",
+    rating: 85,
+    achievements: []
+  },
+  {
+    name: "Game B",
+    gametype: "Adventure",
+    rating: 92,
+    achievements: []
+  },
+  {
+    name: "Game C",
+    gametype: "RPG",
+    rating: 75,
+    achievements: []
+  },
+  {
+    name: "Game D",
+    gametype: "Strategy",
+    rating: 98,
+    achievements: []
+  },
+  {
+    name: "Game E",
+    gametype: "Puzzle",
+    rating: 88,
+    achievements: []
+  }
+]);
+3. Write a Query that Returns All the Games
+To get all the games from the games collection, we can simply use the following query:
+
+javascript
+Copy code
+db.games.find();
+This will return all the games stored in the games collection.
+
+4. Write a Query that Returns the 3 Highest Rated Games
+To find the three highest-rated games, we can sort the games by the rating field in descending order and limit the result to 3 games.
+
+javascript
+Copy code
+db.games.find().sort({ rating: -1 }).limit(3);
+This query will return the top 3 games based on their rating.
+
+5. Update Your Two Favourite Games to Have Two Achievements Called ‘Game Master’ and ‘Speed Demon’
+We will now update two of our favorite games (let’s assume "Game B" and "Game D") to have two achievements: Game Master and Speed Demon.
+
+javascript
+Copy code
+db.games.updateOne(
+  { name: "Game B" },
+  { $set: { achievements: ["Game Master", "Speed Demon"] } }
+);
+
+db.games.updateOne(
+  { name: "Game D" },
+  { $set: { achievements: ["Game Master", "Speed Demon"] } }
+);
+This will update the achievements field for "Game B" and "Game D" with the two achievements.
+
+6. Write a Query that Returns All the Games that Have Both the ‘Game Master’ and ‘Speed Demon’ Achievements
+To find games that have both Game Master and Speed Demon achievements, we can use the $all operator, which matches all values in the array.
+
+javascript
+Copy code
+db.games.find({ achievements: { $all: ["Game Master", "Speed Demon"] } });
+This query will return all the games that have both of the specified achievements.
+
+7. Write a Query that Returns Only Games that Have Achievements
+To return only games that have at least one achievement, we can check if the achievements array is not empty.
+
+javascript
+Copy code
+db.games.find({ achievements: { $exists: true, $not: { $size: 0 } } });
+This query ensures that only games with at least one achievement are returned.

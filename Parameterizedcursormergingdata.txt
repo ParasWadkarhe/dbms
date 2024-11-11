@@ -1,0 +1,48 @@
+17(b) Parameterized Cursor: Merging Data from N_RollCall to O_RollCall
+This PL/SQL block uses a parameterized cursor to merge data from the N_RollCall table into the O_RollCall table. If data from N_RollCall already exists in O_RollCall, it is skipped.
+
+PL/SQL Block
+sql
+Copy code
+DECLARE
+   -- Declare a cursor with parameters to fetch roll call data
+   CURSOR c_rollcall(p_roll NUMBER) IS
+      SELECT roll, name
+      FROM N_RollCall
+      WHERE roll = p_roll;
+   
+   -- Declare variables to hold the fetched data
+   v_roll NUMBER;
+   v_name VARCHAR2(100);
+BEGIN
+   -- Open the cursor for a given roll number (you can pass different roll numbers)
+   OPEN c_rollcall(123);  -- Example roll number
+   
+   -- Loop through the cursor to merge data
+   LOOP
+      FETCH c_rollcall INTO v_roll, v_name;
+      
+      EXIT WHEN c_rollcall%NOTFOUND;
+
+      -- Check if the roll number already exists in O_RollCall
+      BEGIN
+         -- Insert data into O_RollCall only if it doesn't already exist
+         INSERT INTO O_RollCall (roll, name)
+         SELECT v_roll, v_name
+         FROM dual
+         WHERE NOT EXISTS (SELECT 1 FROM O_RollCall WHERE roll = v_roll);
+         
+         COMMIT; -- Commit the insertion
+         
+      EXCEPTION
+         WHEN DUP_VAL_ON_INDEX THEN
+            DBMS_OUTPUT.PUT_LINE('Data already exists for Roll No: ' || v_roll);
+         WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Error during insertion: ' || SQLERRM);
+      END;
+   END LOOP;
+
+   -- Close the cursor
+   CLOSE c_rollcall;
+END;
+/

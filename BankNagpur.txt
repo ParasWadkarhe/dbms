@@ -1,0 +1,100 @@
+-- Step 1: Create the Database
+CREATE DATABASE IF NOT EXISTS bank_management;
+USE bank_management;
+
+-- Step 2: Create Tables with Primary and Foreign Keys
+CREATE TABLE Branch (
+    bname VARCHAR(50) PRIMARY KEY,
+    city VARCHAR(50)
+);
+
+CREATE TABLE Customers (
+    cname VARCHAR(50) PRIMARY KEY,
+    city VARCHAR(50)
+);
+
+CREATE TABLE Deposit (
+    actno INT PRIMARY KEY,
+    cname VARCHAR(50),
+    bname VARCHAR(50),
+    amount DECIMAL(12, 2),
+    adate DATE,
+    FOREIGN KEY (cname) REFERENCES Customers(cname),
+    FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+CREATE TABLE Borrow (
+    loanno INT PRIMARY KEY,
+    cname VARCHAR(50),
+    bname VARCHAR(50),
+    amount DECIMAL(12, 2),
+    FOREIGN KEY (cname) REFERENCES Customers(cname),
+    FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+-- Step 3: Insert Sample Data into Tables
+INSERT INTO Branch (bname, city) VALUES
+('Perryridge', 'San Francisco'),
+('Downtown', 'Los Angeles'),
+('Nagpur', 'Nagpur'),
+('Karolbagh', 'Delhi');
+
+INSERT INTO Customers (cname, city) VALUES
+('Anil', 'Pune'),
+('Raj', 'Bombay'),
+('Sam', 'Nagpur'),
+('Sunil', 'Pune'),
+('Rahul', 'Nagpur');
+
+INSERT INTO Deposit (actno, cname, bname, amount, adate) VALUES
+(1001, 'Anil', 'Perryridge', 5000.00, '1996-12-15'),
+(1002, 'Raj', 'Downtown', 3000.00, '1996-12-20'),
+(1003, 'Sam', 'Nagpur', 4500.00, '1997-01-15'),
+(1004, 'Sunil', 'Karolbagh', 1500.00, '1997-02-10'),
+(1005, 'Rahul', 'Nagpur', 1200.00, '1997-05-10');
+
+INSERT INTO Borrow (loanno, cname, bname, amount) VALUES
+(2001, 'Anil', 'Perryridge', 2000.00),
+(2002, 'Raj', 'Downtown', 2500.00),
+(2003, 'Sam', 'Nagpur', 3000.00),
+(2004, 'Sunil', 'Karolbagh', 1500.00),
+(2005, 'Rahul', 'Nagpur', 2500.00);
+
+-- Step 4: Solve the Queries
+
+-- 1. Display customer name having living city Bombay and branch city Nagpur
+SELECT cname
+FROM Customers c
+JOIN Deposit d ON c.cname = d.cname
+JOIN Branch b ON d.bname = b.bname
+WHERE c.city = 'Bombay' AND b.city = 'Nagpur';
+
+-- 2. Display customer name having same living city as their branch city
+SELECT cname
+FROM Customers c
+JOIN Deposit d ON c.cname = d.cname
+JOIN Branch b ON d.bname = b.bname
+WHERE c.city = b.city;
+
+-- 3. Display customer name who are borrowers as well as depositors and having living city Nagpur
+SELECT DISTINCT c.cname
+FROM Customers c
+JOIN Deposit d ON c.cname = d.cname
+JOIN Borrow b ON c.cname = b.cname
+WHERE c.city = 'Nagpur';
+
+-- 4. Display borrower names having deposit amount greater than 1000 and loan amount greater than 2000
+SELECT DISTINCT b.cname
+FROM Borrow b
+JOIN Deposit d ON b.cname = d.cname
+WHERE d.amount > 1000 AND b.amount > 2000;
+
+-- 5. Display customer name living in the city where branch of depositor sunil is located
+SELECT DISTINCT c.cname
+FROM Customers c
+JOIN Deposit d ON c.cname = d.cname
+JOIN Branch b ON d.bname = b.bname
+WHERE b.city = (SELECT b.city FROM Branch b, Deposit d WHERE d.cname = 'Sunil' AND d.bname = b.bname);
+
+-- 6. Create an index on deposit table for the "amount" column
+CREATE INDEX idx_amount ON Deposit(amount);

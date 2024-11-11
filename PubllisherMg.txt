@@ -1,0 +1,143 @@
+-- Step 1: Create the Database
+CREATE DATABASE IF NOT EXISTS publisher_management;
+USE publisher_management;
+
+-- Step 2: Create Tables with Primary and Foreign Keys
+CREATE TABLE PUBLISHER (
+    PID INT PRIMARY KEY,
+    PNAME VARCHAR(100),
+    ADDRESS VARCHAR(255),
+    STATE VARCHAR(50),
+    PHONE VARCHAR(20),
+    EMAILID VARCHAR(100)
+);
+
+CREATE TABLE BOOK (
+    ISBN INT PRIMARY KEY,
+    BOOK_TITLE VARCHAR(255),
+    CATEGORY VARCHAR(50),
+    PRICE DECIMAL(10, 2),
+    COPYRIGHT_DATE DATE,
+    YEAR INT,
+    PAGE_COUNT INT,
+    PID INT,
+    FOREIGN KEY (PID) REFERENCES PUBLISHER(PID)
+);
+
+CREATE TABLE AUTHOR (
+    AID INT PRIMARY KEY,
+    ANAME VARCHAR(100),
+    STATE VARCHAR(50),
+    CITY VARCHAR(50),
+    ZIP VARCHAR(10),
+    PHONE VARCHAR(20),
+    URL VARCHAR(100)
+);
+
+CREATE TABLE AUTHOR_BOOK (
+    AID INT,
+    ISBN INT,
+    PRIMARY KEY (AID, ISBN),
+    FOREIGN KEY (AID) REFERENCES AUTHOR(AID),
+    FOREIGN KEY (ISBN) REFERENCES BOOK(ISBN)
+);
+
+CREATE TABLE REVIEW (
+    RID INT PRIMARY KEY,
+    ISBN INT,
+    RATING INT,
+    FOREIGN KEY (ISBN) REFERENCES BOOK(ISBN)
+);
+
+-- Step 3: Insert Sample Data into Tables
+INSERT INTO PUBLISHER (PID, PNAME, ADDRESS, STATE, PHONE, EMAILID) VALUES
+(1, 'MEHTA', '123 Main Street, Mumbai', 'Maharashtra', '9876543210', 'mehta@example.com'),
+(2, 'RUPA', '456 Elm Street, Delhi', 'Delhi', '9876543211', 'rupa@example.com');
+
+INSERT INTO BOOK (ISBN, BOOK_TITLE, CATEGORY, PRICE, COPYRIGHT_DATE, YEAR, PAGE_COUNT, PID) VALUES
+(101, 'Half Girlfriend', 'Romance', 499.99, '2015-05-01', 2015, 350, 1),
+(102, 'The 3 Mistakes of My Life', 'Fiction', 399.99, '2008-04-01', 2008, 300, 1),
+(103, 'Rising India', 'Politics', 799.99, '2019-03-01', 2019, 400, 2);
+
+INSERT INTO AUTHOR (AID, ANAME, STATE, CITY, ZIP, PHONE, URL) VALUES
+(1, 'CHETAN BHAGAT', 'Maharashtra', 'Mumbai', '400001', '9988776655', 'www.chetanbhagat.com'),
+(2, 'AMITAV GHOSH', 'West Bengal', 'Kolkata', '700001', '8877665544', 'www.amitavghosh.com');
+
+INSERT INTO AUTHOR_BOOK (AID, ISBN) VALUES
+(1, 101),
+(1, 102),
+(2, 103);
+
+INSERT INTO REVIEW (RID, ISBN, RATING) VALUES
+(1, 101, 4),
+(2, 102, 5),
+(3, 103, 3);
+
+-- Step 4: Solve the Queries
+
+-- 1. Retrieve city, phone, url of author whose name is 'CHETAN BHAGAT'
+SELECT CITY, PHONE, URL
+FROM AUTHOR
+WHERE ANAME = 'CHETAN BHAGAT';
+
+-- 2. Retrieve book title, reviewable id, and rating of all books
+SELECT BOOK_TITLE, ISBN AS REVIEWABLE_ID, RATING
+FROM BOOK b
+JOIN REVIEW r ON b.ISBN = r.ISBN;
+
+-- 3. Retrieve book title, price, author name, and url for publishers 'MEHTA'
+SELECT b.BOOK_TITLE, b.PRICE, a.ANAME, a.URL
+FROM BOOK b
+JOIN AUTHOR_BOOK ab ON b.ISBN = ab.ISBN
+JOIN AUTHOR a ON ab.AID = a.AID
+JOIN PUBLISHER p ON b.PID = p.PID
+WHERE p.PNAME = 'MEHTA';
+
+-- 4. In a PUBLISHER relation change the phone number of 'MEHTA' to 123456
+UPDATE PUBLISHER
+SET PHONE = '123456'
+WHERE PNAME = 'MEHTA';
+
+-- 5. Calculate and display the average, maximum, and minimum price of each publisher
+SELECT p.PNAME, AVG(b.PRICE) AS AVG_PRICE, MAX(b.PRICE) AS MAX_PRICE, MIN(b.PRICE) AS MIN_PRICE
+FROM PUBLISHER p
+JOIN BOOK b ON p.PID = b.PID
+GROUP BY p.PNAME;
+
+-- 6. Delete details of all books having a page count less than 100
+DELETE FROM BOOK
+WHERE PAGE_COUNT < 100;
+
+-- 7. Retrieve details of all authors residing in city Pune and whose name begins with character 'C'
+SELECT *
+FROM AUTHOR
+WHERE CITY = 'Pune' AND ANAME LIKE 'C%';
+
+-- 8. Retrieve details of authors residing in same city as 'Korth'
+SELECT *
+FROM AUTHOR
+WHERE CITY = (SELECT CITY FROM AUTHOR WHERE ANAME = 'Korth');
+
+-- 9. Create a procedure to update the value of page count of a book with a given ISBN
+DELIMITER //
+CREATE PROCEDURE update_page_count(IN book_isbn INT, IN new_page_count INT)
+BEGIN
+    UPDATE BOOK
+    SET PAGE_COUNT = new_page_count
+    WHERE ISBN = book_isbn;
+END //
+DELIMITER ;
+
+-- 10. Create a function that returns the price of a book with a given ISBN
+DELIMITER //
+CREATE FUNCTION get_book_price(book_isbn INT) 
+RETURNS DECIMAL(10,2)
+DETERMINISTIC
+BEGIN
+    DECLARE book_price DECIMAL(10,2);
+    SELECT PRICE INTO book_price
+    FROM BOOK
+    WHERE ISBN = book_isbn;
+    RETURN book_price;
+END //
+DELIMITER ;

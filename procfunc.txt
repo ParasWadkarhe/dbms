@@ -1,0 +1,137 @@
+Problem Statement 6 (Procedures / Functions)
+Employee( emp_id, dept_idemp_name, DoJ, salary, commission,job_title)
+1. Consider the schema given above. Keep the commission column empty initially. Write a Stored Procedure to
+record the employee commission based on following conditions. If salary is more than 10000 then commission
+is 0.4%, if Salary is less than 10000 but experience is more than 10 years then 0.35%, if salary is less than 3000
+then commission is 0.25%. In the remaining cases commission is 0.15%.
+2. Write a PLSQL Function that takes department ID and returns the name of the manager of the department.
+
+
+To solve Problem Statement 6 (Procedures/Functions), I'll guide you through writing the required Stored Procedure and PL/SQL Function for the given schema.
+
+Step 1: Schema Definition
+We have an Employee table with the following structure:
+
+sql
+Copy code
+CREATE TABLE Employee (
+    emp_id INT PRIMARY KEY,
+    dept_id INT,
+    emp_name VARCHAR(100),
+    DoJ DATE,
+    salary DECIMAL(10, 2),
+    commission DECIMAL(10, 2) DEFAULT NULL,
+    job_title VARCHAR(100)
+);
+Step 2: Stored Procedure for Recording Commission
+We will write a Stored Procedure to calculate and record the employee commission based on the salary and experience. The logic is as follows:
+
+If salary is more than 10,000, commission is 0.4%.
+If salary is less than 10,000 but experience is more than 10 years, commission is 0.35%.
+If salary is less than 3,000, commission is 0.25%.
+In the remaining cases, commission is 0.15%.
+Stored Procedure Code:
+sql
+Copy code
+DELIMITER $$
+
+CREATE PROCEDURE record_commission()
+BEGIN
+    DECLARE emp_salary DECIMAL(10, 2);
+    DECLARE emp_doj DATE;
+    DECLARE years_of_experience INT;
+    DECLARE emp_commission DECIMAL(10, 2);
+
+    -- Cursor to loop through all employees
+    DECLARE emp_cursor CURSOR FOR
+        SELECT emp_id, salary, DoJ
+        FROM Employee
+        WHERE commission IS NULL;  -- Only employees without commission
+
+    OPEN emp_cursor;
+
+    -- Loop through all employees
+    read_loop: LOOP
+        FETCH emp_cursor INTO emp_id, emp_salary, emp_doj;
+        
+        -- Exit loop if no more records
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Calculate years of experience based on DoJ
+        SET years_of_experience = TIMESTAMPDIFF(YEAR, emp_doj, CURDATE());
+        
+        -- Commission logic based on conditions
+        IF emp_salary > 10000 THEN
+            SET emp_commission = emp_salary * 0.004;
+        ELSEIF emp_salary < 10000 AND years_of_experience > 10 THEN
+            SET emp_commission = emp_salary * 0.0035;
+        ELSEIF emp_salary < 3000 THEN
+            SET emp_commission = emp_salary * 0.0025;
+        ELSE
+            SET emp_commission = emp_salary * 0.0015;
+        END IF;
+
+        -- Update commission in the Employee table
+        UPDATE Employee
+        SET commission = emp_commission
+        WHERE emp_id = emp_id;
+    END LOOP;
+
+    CLOSE emp_cursor;
+END $$
+
+DELIMITER ;
+Explanation of Stored Procedure:
+Cursor: A cursor is used to loop through all employees who do not have a commission recorded.
+Experience Calculation: The TIMESTAMPDIFF function is used to calculate the years of experience by comparing the employee's DoJ with the current date.
+Commission Calculation: Based on the conditions provided, the commission is calculated for each employee.
+Update Statement: After calculating the commission, we update the Employee table with the computed value for each employee.
+Step 3: PL/SQL Function to Get Manager by Department ID
+The second task is to write a PL/SQL function that takes a department ID and returns the name of the manager for that department.
+
+Assumption:
+We assume that the Employee table has a job_title field, and we consider the manager's job_title to be "Manager". We will use this title to fetch the manager's name for a given department.
+The function will return the name of the manager who is associated with a specific department.
+PL/SQL Function Code:
+sql
+Copy code
+CREATE FUNCTION get_department_manager(department_id INT) 
+RETURNS VARCHAR(100) 
+IS
+    manager_name VARCHAR(100);
+BEGIN
+    -- Fetch the name of the manager for the given department
+    SELECT emp_name
+    INTO manager_name
+    FROM Employee
+    WHERE dept_id = department_id
+    AND job_title = 'Manager'
+    LIMIT 1;
+
+    -- Return the manager's name
+    RETURN manager_name;
+    
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        -- Return a message if no manager is found for the department
+        RETURN 'No manager found for this department';
+END;
+Explanation of the PL/SQL Function:
+Input Parameter: The function takes department_id as input.
+Fetching the Manager's Name: It selects the emp_name of the employee with the title "Manager" in the specified department.
+Exception Handling: If no manager is found (NO_DATA_FOUND), it returns a message "No manager found for this department".
+Step 4: Example Usage
+Calling the Stored Procedure to Record Commissions:
+To execute the stored procedure and calculate the commission for all employees, you can call it like this:
+
+sql
+Copy code
+CALL record_commission();
+Calling the PL/SQL Function to Get the Manager:
+To get the manager's name for a particular department (e.g., department ID 101), you can call the function like this:
+
+sql
+Copy code
+SELECT get_department_manager(101);

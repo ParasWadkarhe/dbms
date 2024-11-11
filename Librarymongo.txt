@@ -1,0 +1,83 @@
+To solve this query using MapReduce in MongoDB, we will follow the steps below:
+
+Steps:
+Create the database and collection: First, we need to create a database called library and a collection called books. We will add sample books data to this collection, where each book has properties like title, author, pages, etc.
+
+MapReduce: We will then write a MapReduce function that categorizes the books into two categories:
+
+Small books (with less than 250 pages).
+Big books (with 250 or more pages).
+Output: The MapReduce function will return the count of books for each category.
+
+1. Creating the library Database and books Collection
+To create the library database and books collection, we can insert documents representing the books. You can use MongoDB's shell to create the database and collection.
+
+javascript
+Copy code
+// Switch to the library database
+use library;
+
+// Create the books collection and insert some sample books data
+db.books.insertMany([
+  { title: "Book A", author: "Author 1", pages: 200 },
+  { title: "Book B", author: "Author 2", pages: 150 },
+  { title: "Book C", author: "Author 3", pages: 300 },
+  { title: "Book D", author: "Author 4", pages: 500 },
+  { title: "Book E", author: "Author 5", pages: 80 }
+]);
+This will create the library database and insert some sample books in the books collection.
+
+2. MapReduce Function
+The MapReduce function will classify the books as either "small" or "big" based on the number of pages and then count how many books fall into each category.
+
+Map Function:
+The map function will emit a key-value pair for each document:
+The key will be either small or big based on the number of pages.
+The value will always be 1 (indicating one book of this type).
+Reduce Function:
+The reduce function will sum the values for each key (i.e., the number of books of each type).
+MapReduce Code:
+javascript
+Copy code
+var map = function() {
+  // Check the number of pages and emit either 'small' or 'big' as the key
+  if (this.pages < 250) {
+    emit("small", 1);
+  } else {
+    emit("big", 1);
+  }
+};
+
+var reduce = function(key, values) {
+  // Sum up the values for each key ('small' or 'big')
+  return Array.sum(values);
+};
+
+// Run the MapReduce operation
+db.books.mapReduce(map, reduce, { out: { inline: 1 } });
+Explanation:
+Map function:
+
+For each book, it checks if the number of pages is less than 250.
+If the book has fewer than 250 pages, it emits small with a value of 1.
+If the book has 250 or more pages, it emits big with a value of 1.
+Reduce function:
+
+The reduce function takes the emitted key (either small or big) and sums up the 1s for each key, effectively counting the number of books in each category.
+Output: The result of the mapReduce operation will be shown inline, returning the count of small and big books.
+
+3. Running the MapReduce Operation
+When you run the above code in MongoDB, the output will look something like this:
+
+json
+Copy code
+[
+  { "_id": "small", "value": 3 },
+  { "_id": "big", "value": 2 }
+]
+In this output:
+
+"small" category has 3 books with fewer than 250 pages.
+"big" category has 2 books with 250 or more pages.
+Conclusion:
+The MapReduce operation in MongoDB successfully classifies books into two categories based on the number of pages and then counts how many books belong to each category. This approach can be helpful when performing aggregation or classification tasks on large datasets.

@@ -1,0 +1,36 @@
+DECLARE
+   -- Declare a cursor to get department-wise average salary
+   CURSOR c_dept_salary(p_dno NUMBER) IS
+      SELECT d_no, AVG(salary) AS avg_salary
+      FROM emp
+      WHERE d_no = p_dno
+      GROUP BY d_no;
+   
+   -- Declare variables to hold fetched data
+   v_dno NUMBER;
+   v_avg_salary NUMBER;
+BEGIN
+   -- Loop through all departments (you can pass different department numbers)
+   FOR dept IN (SELECT DISTINCT d_no FROM emp) LOOP
+      OPEN c_dept_salary(dept.d_no);
+      
+      LOOP
+         FETCH c_dept_salary INTO v_dno, v_avg_salary;
+         
+         EXIT WHEN c_dept_salary%NOTFOUND;
+         
+         -- Insert the average salary into dept_salary table
+         INSERT INTO dept_salary (d_no, avg_salary)
+         VALUES (v_dno, v_avg_salary);
+         
+         COMMIT;  -- Commit the insert
+
+      END LOOP;
+
+      -- Close the cursor for each department
+      CLOSE c_dept_salary;
+   END LOOP;
+
+   DBMS_OUTPUT.PUT_LINE('Department-wise average salaries have been inserted into dept_salary table.');
+END;
+/
